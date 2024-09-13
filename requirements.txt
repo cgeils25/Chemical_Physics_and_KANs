@@ -1,0 +1,14 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: osx-arm64
+jupyter=1.1.1=pyhd8ed1ab_0
+matplotlib=3.9.2=py312h1f38498_1
+numpy=2.1.1=py312h801f5e3_0
+pandas=2.2.2=py312h8ae5369_1
+pytest=8.3.3=pyhd8ed1ab_0
+python=3.12.6=h739c21a_0_cpython
+pytorch=2.4.0=cpu_generic_py312h6bd8f41_1
+rdkit=2024.03.5=py312h619ea94_3
+seaborn=0.13.2=hd8ed1ab_2
+seaborn-base=0.13.2=pyhd8ed1ab_2
+tqdm=4.66.5=pyhd8ed1ab_0

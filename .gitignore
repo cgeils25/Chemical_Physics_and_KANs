@@ -1,0 +1,6 @@
+.pytest_cache/
+datasets/
+slurm_logs/
+notebooks/junk
+notes
+.DS_Store
