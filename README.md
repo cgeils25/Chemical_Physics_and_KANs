@@ -12,21 +12,18 @@ Building this in public so I'm forced to write code people can understand \:)
 
 # Instructions
 
-## Building environment
+## Building and activating environment
 
-Currently I use conda to manage dependencies. Build a suitable environment with the following command: 
+Currently, I use conda to manage dependencies. Build a suitable environment with the following command: 
 ```bash
-conda create --name <<insert_desired_name_here>> --file requirements.txt
+conda create --name 'insert_desired_name_here' --file requirements.txt
 ```
 
-Then, run:
+Then, to activate the environment, run:
 
 ```bash
-conda activate <<insert_desired_name_here>> 
+conda activate 'insert_desired_name_here'
 ```
-
-to activate the environment.
-
 
 ## Running tests
 Once the environment is built, run unit tests with the command:
@@ -37,12 +34,18 @@ pytest
 
 ## Obtaining Datasets
 
-I expect that some of my datasets will be quite large, so I can't store them directly on github. Instead, I'll include scripts to download them and store them in `datasets/`
+I expect that some of my datasets will be quite large, so I can't store them directly on github. Instead, I'll include scripts to download them and store them in `get_datasets/`
 
 To download all datasets, run this command:
 
 ```bash
 python get_datasets/get_all_datasets.py
+```
+
+By default they will be downloaded into `datasets/`, but optionally you can specify another directory with:
+
+```bash
+python get_datasets/get_all_datasets.py --dir 'path/to/directory'
 ```
 
 # Project Structure
