@@ -14,7 +14,9 @@ Building this in public so I'm forced to write code people can understand \:)
 
 ## Building and activating environment
 
-Currently, I use conda to manage dependencies. Build a suitable environment with the following command: 
+Currently, I use conda to manage dependencies. If you do not already have conda installed, you can view the documentation to install miniconda at [this link](https://docs.anaconda.com/miniconda/).
+
+You can recreate my environment with the following command: 
 ```bash
 conda create --name 'insert_desired_name_here' --file requirements.txt
 ```
@@ -31,6 +33,8 @@ Once the environment is built, run unit tests with the command:
 ```bash
 pytest
 ```
+
+I'll try to test everything not contained in a jupyter notebook so that making future changes will be easier.
 
 ## Obtaining Datasets
 
@@ -54,6 +58,6 @@ python get_datasets/get_all_datasets.py --dir 'path/to/directory'
 - `notebooks/` - All jupyter notebooks applying KANs to datasets.
   - `estimating_aqueous_solubility/` - Specific notebooks applying KANs to a dataset from [this paper](https://pubs-acs-org.pallas2.tcl.sc.edu/doi/10.1021/ci034243x) which provides a model for molecular aqueous solubility.
 - `slurm_scripts/` - Shell scripts I use(d) to submit jobs to my school's (USC Columbia) high-performance computing cluster.
-- `tests/` - Unit tests. I'll try to test everything not in a notebook. Also, the structure of the unit test directories will mirror the structure of the project as a whole.
+- `tests/` - Unit tests. The structure of the unit test directories will mirror the structure of the project as a whole.
 - `train_scripts/` - Full model training pipelines.
 - `requirements.txt` - Project environment requirements.
