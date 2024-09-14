@@ -1,5 +1,4 @@
 .pytest_cache/
-datasets/
 slurm_logs/
 notebooks/junk
 notes
