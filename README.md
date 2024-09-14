@@ -4,7 +4,9 @@ Kolmogorov-arnold networks (KANs) are a new type of neural network that serves a
 
 The basic principle behind KANs is that they learn to approximate a multivariable function by adjusting the weights associated with their activation functions, as opposed to MLPs which typically have static activation functions. As a result, they are potentially easier to interpret and can reveal simple, symbolic models that would be impossible to extract from an MLP.
 
-You can check out the original KAN papers [here](https://arxiv.org/pdf/2404.19756) and [here](https://arxiv.org/pdf/2408.10205).
+You can check out the original KAN papers [here](https://arxiv.org/pdf/2404.19756) and [here](https://arxiv.org/pdf/2408.10205). They're lengthy but probably some of my favorite pieces of ML research; very well-explained with informative visualizations from an excellent group of researchers. 
+
+Also, you can view the source code for KANs at [this link](https://github.com/KindXiaoming/pykan). Similar to the paper, it's probably some of the best ML code I've read.
 
 This repository contains my work for an ongoing research project in which I am trying to apply KANs to problems in chemical physics to see if they can uncover or recover simple, explainable, and symbolic models.
 
@@ -38,23 +40,10 @@ I'll try to test everything not contained in a jupyter notebook so that making f
 
 ## Obtaining Datasets
 
-I expect that some of my datasets will be quite large, so I can't store them directly on github. Instead, I'll include scripts to download them and store them in `get_datasets/`
-
-To download all datasets, run this command:
-
-```bash
-python get_datasets/get_all_datasets.py
-```
-
-By default they will be downloaded into `datasets/`, but optionally you can specify another directory with:
-
-```bash
-python get_datasets/get_all_datasets.py --dir 'path/to/directory'
-```
+I expect most of the datasets I used to be public and relatively small. If they're too large for github (> 150 mb), I'll provide instructions for how to obtain them. Otherwise, they'll be contained in `datasets/`
 
 # Project Structure
 
-- `get_datasets/` - Scripts to download all associated datasets 
 - `notebooks/` - All jupyter notebooks applying KANs to datasets.
   - `estimating_aqueous_solubility/` - Specific notebooks applying KANs to a dataset from [this paper](https://pubs-acs-org.pallas2.tcl.sc.edu/doi/10.1021/ci034243x) which provides a model for molecular aqueous solubility.
 - `slurm_scripts/` - Shell scripts I use(d) to submit jobs to my school's (USC Columbia) high-performance computing cluster.
