@@ -3,3 +3,4 @@ slurm_logs/
 notebooks/junk
 notes
 .DS_Store
+.ipynb_checkpoints
