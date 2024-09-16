@@ -13,8 +13,8 @@ Tests imports of required packages from requirements.txt:
 - tqdm
 """
 
-# man this would be so much easier if the name of a package was the same as the name of the module you import from it
 required_packages = ['jupyter', 'matplotlib', 'numpy', 'pandas', 'pytest', 'torch', 'rdkit', 'sklearn', 'seaborn', 'tqdm']
+# man this would be so much easier if the name of a package was the same as the name of the module you import from it
 
 def test_imports():
     # test that all required packages can be imported
