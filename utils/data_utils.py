@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
-import rdkit
 from rdkit import Chem
 from rdkit.Chem import Descriptors
 from tqdm import tqdm
+
+import warnings
 
 # suppresses a faulty deprecation warning from rdkit
 from rdkit import RDLogger
@@ -51,6 +52,13 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_dataframe: b
 
         # store descriptors in array
         all_descriptors[i] = mol_descriptors
+    
+    # check if any values are NaN or infinite
+    if np.isnan(all_descriptors).any():
+        warnings.warn("some descriptors are NaN, check input SMILES strings")
+
+    if np.isinf(all_descriptors).any():
+        warnings.warn("some descriptors are infinite, check input SMILES strings")
     
     if as_dataframe:
         # convert to pandas dataframe
