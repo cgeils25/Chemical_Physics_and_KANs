@@ -1,0 +1,2 @@
+This directory contains datasets that are used for unit testing. It is not meant to contain 
+unit testing for the datasets themselves (what would that even look like? ...)
