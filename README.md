@@ -20,13 +20,13 @@ Currently, I use conda to manage dependencies. If you do not already have conda 
 
 You can recreate my environment with the following command: 
 ```bash
-conda create --name 'insert_desired_name_here' --file requirements.txt
+conda env create --file requirements.yml
 ```
 
 Then, to activate the environment, run:
 
 ```bash
-conda activate 'insert_desired_name_here'
+conda activate chem_phys_kans
 ```
 
 ## Running tests
