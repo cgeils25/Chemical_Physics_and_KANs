@@ -12,6 +12,8 @@ This repository contains my work for an ongoing research project in which I am t
 
 Building this in public so I'm forced to write code people can understand \:)
 
+![single layer kan and aq sol](images/single_layer_kan_aq_sol.png)
+
 # Instructions
 
 ## Building and activating environment
