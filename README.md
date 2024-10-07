@@ -45,7 +45,7 @@ I expect most of the datasets I used to be public and relatively small. If they'
 # Project Structure
 
 - `datasets/` - All datasets. If a dataset is too large or not public, will include instructions in an appropriately titled .txt
-- `kan/` - My implementation of a KAN from scratch
+- `exercises/` - My own personal exercises (mainly implementing things from scratch for better understanding)
 - `notebooks/` - All jupyter notebooks applying KANs to datasets.
   - `estimating_aqueous_solubility/` - Specific notebooks applying KANs to a dataset from [this paper](https://pubs-acs-org.pallas2.tcl.sc.edu/doi/10.1021/ci034243x) which provides a model for molecular aqueous solubility.
 - `slurm_scripts/` - Shell scripts I use(d) to submit jobs to my school's (USC Columbia) high-performance computing cluster.
