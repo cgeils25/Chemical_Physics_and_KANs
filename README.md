@@ -14,6 +14,10 @@ Building this in public so I'm forced to write code people can understand \:)
 
 ![single layer kan and aq sol](images/single_layer_kan_aq_sol.png)
 
+## Motivation
+
+My reasoning for this project is that explainability in chemistry is important; these types of models and their predictions may be used to make decisions about drug design. In order for them to be trustworthy, it may be necessary to sacrifice the performance gains achieved by black-box graph neural nets. But who knows, maybe none of my models will work ¯\\\_(ツ)_/¯
+
 # Instructions
 
 ## Building and activating environment
@@ -42,7 +46,7 @@ I'll try to test everything not contained in a jupyter notebook so that making f
 
 ## Obtaining Datasets
 
-I expect most of the datasets I used to be public and relatively small. If they're too large for github (> 150 mb), I'll provide instructions for how to obtain them. Otherwise, they'll be contained in `datasets/`
+I expect most of the datasets I used to be public and relatively small, since they'll likely just be lists of SMILES strings and target values. If they're too large for github (> 150 mb), I'll provide instructions for how to obtain them. Otherwise, they'll be contained in `datasets/`
 
 # Project Structure
 
