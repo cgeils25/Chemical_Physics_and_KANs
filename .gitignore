@@ -6,3 +6,5 @@ notes
 .ipynb_checkpoints/
 __pycache__/
 README.html
+model/
+figures/
