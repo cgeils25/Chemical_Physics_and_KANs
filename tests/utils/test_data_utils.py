@@ -1,23 +1,29 @@
 from utils.data_utils import get_all_descriptors_from_smiles_list
 import numpy as np
 import pandas as pd
+import polars as pl
 
 def test_get_all_descriptors_from_smiles_list_empty():
     # empty smiles list
     smiles_list = []
-    result = get_all_descriptors_from_smiles_list(smiles_list, as_dataframe=False)
+    result = get_all_descriptors_from_smiles_list(smiles_list, as_pandas=False)
 
     assert isinstance(result, np.ndarray)
     assert result.shape[0] == 0
 
-    result = get_all_descriptors_from_smiles_list(smiles_list, as_dataframe=True)
+    result = get_all_descriptors_from_smiles_list(smiles_list, as_pandas=True)
 
     assert isinstance(result, pd.DataFrame)
     assert result.shape[0] == 0
 
+    result = get_all_descriptors_from_smiles_list(smiles_list, as_pandas=False, as_polars=True)
+    
+    assert isinstance(result, pl.DataFrame)
+    assert result.shape[0] == 0
+
 def test_get_all_descriptors_from_smiles_list_single():
     smiles_list = ["CCO"]
-    result = get_all_descriptors_from_smiles_list(smiles_list, as_dataframe=False)
+    result = get_all_descriptors_from_smiles_list(smiles_list, as_pandas=False)
 
     # check type
     assert isinstance(result, np.ndarray)
@@ -25,10 +31,18 @@ def test_get_all_descriptors_from_smiles_list_single():
     # check shape
     assert result.shape[0] == 1
 
-    result = get_all_descriptors_from_smiles_list(smiles_list, as_dataframe=True)
+    result = get_all_descriptors_from_smiles_list(smiles_list, as_pandas=True)
 
     # check type
     assert isinstance(result, pd.DataFrame)
+
+    # check shape
+    assert result.shape[0] == 1
+
+    result = get_all_descriptors_from_smiles_list(smiles_list, as_pandas=False, as_polars=True)
+
+    # check type
+    assert isinstance(result, pl.DataFrame)
 
     # check shape
     assert result.shape[0] == 1
@@ -59,22 +73,26 @@ def test_get_all_descriptors_from_smiles_list_dataset():
     precalculated_descriptors_df = pd.read_csv('tests/test_datasets/delaney_molecular_descriptors_test.csv')
     precalculated_descriptors = precalculated_descriptors_df.to_numpy()
 
-    result_np = get_all_descriptors_from_smiles_list(smiles_list, as_dataframe=False)
-    result_df = get_all_descriptors_from_smiles_list(smiles_list, as_dataframe=True)
+    result_np = get_all_descriptors_from_smiles_list(smiles_list, as_pandas=False)
+    result_df = get_all_descriptors_from_smiles_list(smiles_list, as_pandas=True)
+    result_pl = get_all_descriptors_from_smiles_list(smiles_list, as_pandas=False, as_polars=True)
 
     # check types
     assert isinstance(result_np, np.ndarray)
     assert isinstance(result_df, pd.DataFrame)
+    assert isinstance(result_pl, pl.DataFrame)
 
     # check shapes against smiles list
     assert result_np.shape[0] == len(smiles_list), 'Number of rows in numpy array is not equal to number of SMILES strings'
     assert result_df.shape[0] == len(smiles_list), 'Number of rows in dataframe is not equal to number of SMILES strings'
+    assert result_pl.shape[0] == len(smiles_list), 'Number of rows in polars dataframe is not equal to number of SMILES strings'
 
     # check shapes against precalculated descriptors
     assert result_np.shape == precalculated_descriptors.shape, 'Shape of numpy array is not equal to shape of precalculated descriptors'
     assert result_df.shape == precalculated_descriptors_df.shape, 'Shape of dataframe is not equal to shape of precalculated descriptors'
+    assert result_pl.shape == precalculated_descriptors_df.shape, 'Shape of polars dataframe is not equal to shape of precalculated descriptors'
 
     # check if values are equal
     assert np.allclose(result_np, precalculated_descriptors), "Numpy arrays of molecular descriptors are not equal"
     assert np.allclose(result_df, precalculated_descriptors_df), "Dataframes of molecular descriptors are not equal"
-
+    assert np.allclose(result_pl, precalculated_descriptors_df), "Polars dataframes of molecular descriptors are not equal"

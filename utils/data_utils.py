@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import polars as pl
 from rdkit import Chem
 from rdkit.Chem import Descriptors
 from tqdm import tqdm
@@ -11,12 +12,13 @@ from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*') 
 # warning raised by Descriptors.CalcMolDescriptors -- Maintainers claim it will be fixed in 2024.03.06
 
-def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_dataframe: bool = False):
+def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool = False, as_polars: bool = False):
     """Calculates all molecular descriptors from a list of SMILES strings.
 
     Args:
         smiles_list (list[str]): List of SMILES strings.
-        as_dataframe (bool, optional): If True, returns a pandas dataframe. Defaults to False.
+        as_pandas (bool, optional): If True, returns a pandas dataframe. Defaults to False.
+        as_polars (bool, optional): If True, returns a polars dataframe. Defaults to False.
 
     Returns:
         np.ndarray or pd.DataFrame: Array or pandas dataframe of molecular descriptors 
@@ -28,13 +30,22 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_dataframe: b
     if not all(isinstance(smiles, str) for smiles in smiles_list):
         raise ValueError("All elements in smiles_list must be strings")
     
-    if not isinstance(as_dataframe, bool):
-        raise ValueError(f"as_dataframe must be a boolean, instead got {type(as_dataframe)}")
+    if not isinstance(as_pandas, bool):
+        raise ValueError(f"as_pandas must be a boolean, instead got {type(as_pandas)}")
+
+    if not isinstance(as_polars, bool):
+        raise ValueError(f"as_polars must be a boolean, instead got {type(as_polars)}")
     
+    if as_pandas and as_polars:
+        as_polars = False
+        warnings.warn("Both as_pandas and as_polars are True. Returning pandas dataframe")
+
     # if input smiles list is empty, return empty array or dataframe
     if len(smiles_list) == 0:
-        if as_dataframe:
+        if as_pandas:
             return pd.DataFrame()
+        if as_polars:
+            return pl.DataFrame()
         return np.array([])
     
     # get names of molecular descriptors
@@ -60,9 +71,13 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_dataframe: b
     if np.isinf(all_descriptors).any():
         warnings.warn("some descriptors are infinite, check input SMILES strings")
     
-    if as_dataframe:
+    if as_pandas:
         # convert to pandas dataframe
         all_descriptors_df = pd.DataFrame(all_descriptors, columns=descriptor_names)
+        return all_descriptors_df
+    if as_polars:
+        # convert to polars dataframe
+        all_descriptors_df = pl.DataFrame(all_descriptors, schema=descriptor_names)
         return all_descriptors_df
 
     return all_descriptors
