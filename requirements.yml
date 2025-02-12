@@ -16,5 +16,6 @@ dependencies:
   - seaborn=0.13.2
   - sympy=1.13.3
   - tqdm=4.66.5
+  - polars=1.22.0
   - pip:
       - pykan==0.2.6
