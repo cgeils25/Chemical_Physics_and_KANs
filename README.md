@@ -32,7 +32,7 @@ conda env create --file requirements.yml
 Then, to activate the environment, run:
 
 ```bash
-conda activate chem_phys_kans
+conda activate cpk
 ```
 
 ## Running tests
