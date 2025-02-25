@@ -53,7 +53,7 @@ def main(args):
         if any([line.startswith(ignore_line) for ignore_line in ignore_lines]):
             continue
         
-        if 'import' in line:
+        if 'import' in line or line.startswith('sys.path.append'):
             import_lines.append(line)
             continue
         
