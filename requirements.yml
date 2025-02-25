@@ -1,4 +1,4 @@
-name: chem_phys_kans
+name: cpk
 channels:
   - conda-forge
   - defaults
