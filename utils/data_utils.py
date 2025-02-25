@@ -12,13 +12,14 @@ from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*') 
 # warning raised by Descriptors.CalcMolDescriptors -- Maintainers claim it will be fixed in 2024.03.06
 
-def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool = False, as_polars: bool = False):
+def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool = False, as_polars: bool = False, show_tqdm: bool = True):
     """Calculates all molecular descriptors from a list of SMILES strings.
 
     Args:
         smiles_list (list[str]): List of SMILES strings.
         as_pandas (bool, optional): If True, returns a pandas dataframe. Defaults to False.
         as_polars (bool, optional): If True, returns a polars dataframe. Defaults to False.
+        show_tqdm (bool, optional): If True, shows a progress bar. Defaults to True.
 
     Returns:
         np.ndarray or pd.DataFrame: Array or pandas dataframe of molecular descriptors 
@@ -54,7 +55,7 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool
     # initialize empty array to store descriptors
     all_descriptors = np.empty((len(smiles_list), len(descriptor_names)))
 
-    for i, smiles in enumerate(tqdm(smiles_list)):
+    for i, smiles in enumerate(tqdm(smiles_list, desc="Calculating descriptors")) if show_tqdm else enumerate(smiles_list):
         # obtain mol object
         mol = Chem.MolFromSmiles(smiles)
 
