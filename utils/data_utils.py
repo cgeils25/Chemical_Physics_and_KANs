@@ -51,7 +51,7 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool
     
     # get names of molecular descriptors
     descriptor_names = [x[0] for x in Descriptors._descList]
-    IpC_idx = descriptor_names.index('Ipc') # so I can replace it with the avergae IpC
+    IpC_idx = descriptor_names.index('Ipc') # so I can replace it with the avergae IpC. Otherwise it spits out numbers > 1e50
 
     # initialize empty array to store descriptors
     all_descriptors = np.empty((len(smiles_list), len(descriptor_names)))
@@ -63,7 +63,7 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool
         # calculate all descriptors for the molecule
         mol_descriptors = np.array(list(Descriptors.CalcMolDescriptors(mol).values()))
 
-        # replace Ipc with average IpC
+        # replace Ipc with average IpC. Otherwise it spits out numbers > 1e50. See https://www.rdkit.org/docs/source/rdkit.Chem.GraphDescriptors.html
         mol_descriptors[IpC_idx] = GraphDescriptors.Ipc(mol, avg=True)
 
         # store descriptors in array
