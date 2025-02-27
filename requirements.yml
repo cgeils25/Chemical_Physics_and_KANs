@@ -19,3 +19,4 @@ dependencies:
   - polars=1.22.0
   - pip:
       - pykan==0.2.6
+      - neattime==0.0.4
