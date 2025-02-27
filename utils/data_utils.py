@@ -65,6 +65,7 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool
 
         # replace Ipc with average IpC. Otherwise it spits out numbers > 1e50. See https://www.rdkit.org/docs/source/rdkit.Chem.GraphDescriptors.html
         mol_descriptors[IpC_idx] = GraphDescriptors.Ipc(mol, avg=True)
+        # also see this issue: https://github.com/rdkit/rdkit/issues/1527
 
         # store descriptors in array
         all_descriptors[i] = mol_descriptors
