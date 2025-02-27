@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import polars as pl
 from rdkit import Chem
-from rdkit.Chem import Descriptors
+from rdkit.Chem import Descriptors, GraphDescriptors
 from tqdm import tqdm
 
 import warnings
@@ -51,6 +51,7 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool
     
     # get names of molecular descriptors
     descriptor_names = [x[0] for x in Descriptors._descList]
+    IpC_idx = descriptor_names.index('Ipc') # so I can replace it with the avergae IpC
 
     # initialize empty array to store descriptors
     all_descriptors = np.empty((len(smiles_list), len(descriptor_names)))
@@ -61,6 +62,9 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool
 
         # calculate all descriptors for the molecule
         mol_descriptors = np.array(list(Descriptors.CalcMolDescriptors(mol).values()))
+
+        # replace Ipc with average IpC
+        mol_descriptors[IpC_idx] = GraphDescriptors.Ipc(mol, avg=True)
 
         # store descriptors in array
         all_descriptors[i] = mol_descriptors
