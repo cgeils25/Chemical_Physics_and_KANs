@@ -12,6 +12,8 @@ This repository contains my work for an ongoing research project in which I am t
 
 Building this in public so I'm forced to write code people can understand \:)
 
+![two layer kan aq sol](images/2_layer_kan_esol.png)
+
 ![single layer kan and aq sol](images/single_layer_kan_aq_sol_full_v_reduced.png)
 
 ## Motivation
