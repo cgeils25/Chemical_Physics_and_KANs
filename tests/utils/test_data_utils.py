@@ -1,4 +1,4 @@
-from utils.data_utils import get_all_descriptors_from_smiles_list
+from utils.data_utils import get_all_descriptors_from_smiles_list, get_scaffolds
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -96,3 +96,13 @@ def test_get_all_descriptors_from_smiles_list_dataset():
     assert np.allclose(result_np, precalculated_descriptors), "Numpy arrays of molecular descriptors are not equal"
     assert np.allclose(result_df, precalculated_descriptors_df), "Dataframes of molecular descriptors are not equal"
     assert np.allclose(result_pl, precalculated_descriptors_df), "Polars dataframes of molecular descriptors are not equal"
+
+
+def test_get_scaffolds():
+    smis = ['CCO', 'CC1=CC=CC=C1', 'OCC1=CN=CN=C1']
+    scaffolds_ground_truth = ['no_scaffold_0', 'c1ccccc1', 'c1cncnc1']
+
+    scaffolds = get_scaffolds(smis)
+
+    assert len(scaffolds) == len(smis), f'Number of scaffolds is not equal to number of SMILES strings. Got {len(scaffolds)}, expected {len(smis)}'
+    assert scaffolds == scaffolds_ground_truth, f'Scaffolds are not equal to ground truth. Got {scaffolds}, expected {scaffolds_ground_truth}'
