@@ -1,8 +1,13 @@
+from typing import List
+
 import numpy as np
 import pandas as pd
 import polars as pl
+
 from rdkit import Chem
 from rdkit.Chem import Descriptors, GraphDescriptors
+from rdkit.Chem.Scaffolds.MurckoScaffold import MurckoScaffoldSmilesFromSmiles
+
 from tqdm import tqdm
 
 import warnings
@@ -88,4 +93,30 @@ def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool
 
     return all_descriptors
 
+def get_scaffolds(smiles_list: list) -> List[str]:
+    """Get a list of Murcko scaffolds from a list of SMILES strings.
+
+    This is useful for group splitting the dataset: it prevents models from learning a lookup table of scaffold-to-property
+
+    For molecules with no scaffolds, we assign a unique scaffold name to each molecule. This way, the molecules with 
+    no scaffolds are considered as their own group. Without this, a group split will put every molecule with no scaffold in 
+    either the train or test set.
+
+    Args:
+        smiles_list (list): List of SMILES strings.
+
+    Returns:
+        List[str]: List of Murcko scaffolds.
+    """
+    scaffolds = [MurckoScaffoldSmilesFromSmiles(s) for s in smiles_list]
+
+    no_scaffold_idx = 0
+
+    # we want the molecules with no scaffolds to be considered as their own group. Otherwise the group split will 
+    # put every molecule with no scaffold in either the train or test set
+    for i in range(len(scaffolds)):
+        if scaffolds[i] == '':
+            scaffolds[i] = f'no_scaffold_{no_scaffold_idx}'
+            no_scaffold_idx += 1
     
+    return scaffolds
