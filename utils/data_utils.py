@@ -17,6 +17,9 @@ from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*') 
 # warning raised by Descriptors.CalcMolDescriptors -- Maintainers claim it will be fixed in 2024.03.06
 
+# names of all rdkit molecular descriptors
+DESCRIPTOR_NAMES = [x[0] for x in Descriptors._descList]
+
 def get_all_descriptors_from_smiles_list(smiles_list: list[str], as_pandas: bool = False, as_polars: bool = False, show_tqdm: bool = True):
     """Calculates all molecular descriptors from a list of SMILES strings.
 
