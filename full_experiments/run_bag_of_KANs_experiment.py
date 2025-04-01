@@ -1,3 +1,9 @@
+"""
+A CLI-based pipeline to run an experiment comparing single KANs to a Bag of KANs model trained with Bootstrap Aggregation (Bagging) on the Delaney aqueous solubility dataset.
+
+for more information on command line arguments, run `python full_experiments/run_bag_of_KANs_experiment.py --help`
+"""
+
 import sys; sys.path.append('.')
 
 import os
