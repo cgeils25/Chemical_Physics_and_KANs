@@ -4,19 +4,19 @@ channels:
   - defaults
 dependencies:
   - jupyter=1.1.1
-  - matplotlib=3.9.2
-  - numpy=2.1.1
-  - pandas=2.2.2
-  - pip=24.2
-  - pytest=8.3.3
-  - python=3.12.6
-  - pytorch=2.4.0
-  - rdkit=2024.03.5
-  - scikit-learn=1.5.2
+  - matplotlib=3.10.0
+  - numpy=2.2.2
+  - pandas=2.2.3
+  - pip=25.0.1
+  - polars=1.22.0
+  - pytest=8.3.4
+  - python=3.13.1
+  - pytorch=2.5.1
+  - rdkit=2024.09.5
+  - scikit-learn=1.6.1
   - seaborn=0.13.2
   - sympy=1.13.3
-  - tqdm=4.66.5
-  - polars=1.22.0
+  - tqdm=4.67.1
   - pip:
-      - pykan==0.2.6
       - neattime==0.0.4
+      - pykan==0.2.8
