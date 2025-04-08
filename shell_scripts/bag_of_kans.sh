@@ -8,4 +8,5 @@ python -u full_experiments/run_bag_of_KANs_experiment.py \
     --test_size 0.2 \
     --num_itrs 1000 \
     --lr 0.001 \
-    --num_bootstraps 25
+    --num_bootstraps 25 \
+    --parallel
