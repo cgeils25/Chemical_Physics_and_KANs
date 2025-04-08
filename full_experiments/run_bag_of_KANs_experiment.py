@@ -7,6 +7,7 @@ for more information on command line arguments, run `python full_experiments/run
 import sys; sys.path.append('.')
 
 import os
+import shutil
 
 from typing import List
 
@@ -31,6 +32,9 @@ from utils.evaluation_utils import regression_report
 from utils.misc_utils import print_args
 
 from neattime import neattime
+
+import torch.multiprocessing as mp # wrapper for built-in multiprocessing. Used because pytorch tensors can't be pickled and moved between cores
+ctx = mp.get_context('spawn') # context for multiprocessing. Pytorch autograd breaks when using 'fork' context: https://github.com/pytorch/pytorch/wiki/Autograd-and-Fork
 
 DTYPE = torch.float32
 # MAKE SURE TO CHANGE THE RANDOM SEED FOR EACH RUN
@@ -127,6 +131,19 @@ def process_data(X: pl.DataFrame, y: pl.DataFrame, groups: List, test_size: floa
 def train_and_test_predictions_to_report_df(y_train: torch.tensor, y_train_pred: torch.tensor, 
                                             y_test: torch.tensor, y_test_pred: torch.tensor, 
                                             trial_num: int, model_type: str):
+    """Convert the train and test predictions to a condensed report, and return as a DataFrame.
+
+    Args:
+        y_train (torch.tensor): train target values
+        y_train_pred (torch.tensor): train predictions
+        y_test (torch.tensor): test target values
+        y_test_pred (torch.tensor): test predictions
+        trial_num (int): current trial number
+        model_type (str): type of model 
+
+    Returns:
+        pl.DataFrame: a DataFrame with the final loss metrics 
+    """
     train_report = regression_report(y_true=y_train, y_pred=y_train_pred)
     test_report = regression_report(y_true=y_test, y_pred=y_test_pred)
 
@@ -182,9 +199,88 @@ def train_single_model(X_train: torch.tensor, X_test: torch.tensor, y_train: tor
     return report_df
 
 
-def train_bags_of_kans(X_train: torch.tensor, X_test: torch.tensor, y_train: torch.tensor, y_test: torch.tensor, 
+def train_bootstrapped_kan(temp_save_dir: str, X_train: torch.tensor, X_test: torch.tensor, y_train: torch.tensor, y_test: torch.tensor, 
                        num_itrs: int, lr: float, num_bootstrap_samples: int, random_seed: int, trial_num: int, 
-                       device: torch.device, verbose: bool = True):
+                       device: torch.device, verbose: bool = True, bootstrap_model_idx: int = 0):
+    """Train a bootstrapped KAN model and save it to the temp directory.
+
+    Args:
+        temp_save_dir (str): the temporary directory in which to save the bootstrapped model
+        X_train (torch.tensor): train features
+        X_test (torch.tensor): test features
+        y_train (torch.tensor): train target values
+        y_test (torch.tensor): test target values
+        num_itrs (int): number of training iterations
+        lr (float): learning rate
+        num_bootstrap_samples (int): number of bootstrap samples and models
+        random_seed (int): random seed for reproducibility
+        trial_num (int): current trial number
+        device (torch.device): device for the pytorch tensors
+        verbose (bool, optional): currently does nothing. Defaults to True.
+        bootstrap_model_idx (int, optional): The index of the current bootstrapped model. Used to deterministically create a new random seed. Defaults to 0.
+    """
+    
+    torch_random_generator = torch.Generator().manual_seed(random_seed + bootstrap_model_idx)
+    
+    if verbose:
+            print('.'*100, f'\nTraining bootstrapped model {bootstrap_model_idx+1}/{num_bootstrap_samples}')
+
+    bootstrap_sample_indices = torch.randint(low=0, high=X_train.shape[0], 
+                                            size=(X_train.shape[0],), 
+                                            generator=torch_random_generator)
+
+    X_train_bootstrap = X_train[bootstrap_sample_indices]
+    y_train_bootstrap = y_train[bootstrap_sample_indices]
+
+    bootstrapped_model = KAN(width=[X_train.shape[1], 1], seed=random_seed + bootstrap_model_idx
+                                , auto_save=False)
+    
+    bootstrapped_model.to(device)
+
+    # not collecting reports for individual bootstrapped models
+    train_regression(model=bootstrapped_model, X_train=X_train_bootstrap, y_train=y_train_bootstrap, X_test=X_test, y_test=y_test, num_itrs=num_itrs, lr=lr, verbose=verbose, seed=random_seed, n_iterations_per_print=50)
+
+    model_save_path = os.path.join(temp_save_dir, f'bootstrapped_model_trial_{trial_num}_model_{bootstrap_model_idx}.pt')
+
+    torch.save(bootstrapped_model.state_dict(), model_save_path)
+
+    print(f'Bootstrapped model {bootstrap_model_idx+1}/{num_bootstrap_samples} saved to {model_save_path}')
+
+
+def load_bootstrapped_models(temp_save_dir: str, kan_width: List[int]):
+    """Load the bootstrapped models from the temp directory. Then remove the temp directory and its contents.
+
+    Args:
+        temp_save_dir (str): path to the temp directory containing the bootstrapped models as .pt files
+        kan_width (List[int]): the width of the KAN model
+
+    Returns:
+        List[kan.MultKAN.MultKAN]: the loaded bootstrapped models
+    """
+    # to circumvent pickling issues with multiprocessing, models are saved to and then loaded from a temp directory
+    print(f'Loading bootstrapped models from temp directory {temp_save_dir}...')
+
+    model_paths = [os.path.join(temp_save_dir, f) for f in os.listdir(temp_save_dir) if f.endswith('.pt')]
+
+    bootstrapped_models = []
+
+    for model_path in model_paths:
+        bootstrapped_model = KAN(width=kan_width, auto_save=False)
+        bootstrapped_model.load_state_dict(torch.load(model_path, weights_only=True))
+        bootstrapped_models.append(bootstrapped_model)
+    
+    print(f'Loaded {len(bootstrapped_models)} bootstrapped models.')
+    
+    print('Removing temp directory...')
+    shutil.rmtree(temp_save_dir) # os.rmdir complains if directory is not empty
+    print('Temp directory removed.')
+
+    return bootstrapped_models
+
+
+def train_bag_of_kans(X_train: torch.tensor, X_test: torch.tensor, y_train: torch.tensor, y_test: torch.tensor, 
+                       num_itrs: int, lr: float, num_bootstrap_samples: int, random_seed: int, trial_num: int, 
+                       device: torch.device, verbose: bool = True, parallel: bool = True):
     """Train a single KAN and return a report of final loss metrics as a polars DataFrame.
 
     Args:
@@ -199,35 +295,41 @@ def train_bags_of_kans(X_train: torch.tensor, X_test: torch.tensor, y_train: tor
         trial_num (int): trial number
         device (torch.device): device for the pytorch tensors
         verbose (bool, optional): whether to print loss metrics as model trains. Defaults to True.
+        parallel (bool, optional): whether to use parallel processing for training bootstrapped models. Defaults to True.
 
     Returns:
         pl.DataFrame: a DataFrame with the final loss metrics
     """
-    
-    torch_random_generator = torch.Generator().manual_seed(random_seed)
 
-    bootstrapped_models = []
-    
-    for i in range(num_bootstrap_samples):
-        if verbose:
-            print('.'*100, f'\nTraining bootstrapped model {i+1}/{num_bootstrap_samples}')
+    temp_save_dir = f'TEMP_bootstrapped_models_{neattime()}'    
 
-        bootstrap_sample_indices = torch.randint(low=0, high=X_train.shape[0], 
-                                                size=(X_train.shape[0],), 
-                                                generator=torch_random_generator)
+    os.makedirs(temp_save_dir, exist_ok=True)
 
-        X_train_bootstrap = X_train[bootstrap_sample_indices]
-        y_train_bootstrap = y_train[bootstrap_sample_indices]
+    train_bootstrapped_kan_args = [
+        (temp_save_dir, X_train, X_test, y_train, y_test, num_itrs, lr, num_bootstrap_samples, random_seed + (i * num_bootstrap_samples), trial_num, device, verbose, i)
+        for i in range(num_bootstrap_samples)
+    ]
 
-        bootstrapped_model = KAN(width=[X_train.shape[1], 1], seed=random_seed + (num_bootstrap_samples * i) # so that none will have the same random seed across the entire experiment
-                                 , auto_save=False)
+    if not parallel:
+        print('Parallel set to False. Training bootstrapped models sequentially...')
         
-        bootstrapped_model.to(device)
+        bootstrapped_models = []
 
-        # not collecting reports for individual bootstrapped models
-        train_regression(model=bootstrapped_model, X_train=X_train_bootstrap, y_train=y_train_bootstrap, X_test=X_test, y_test=y_test, num_itrs=num_itrs, lr=lr, verbose=verbose, seed=random_seed, n_iterations_per_print=50)
+        for args in train_bootstrapped_kan_args:
+            train_bootstrapped_kan(*args)
 
-        bootstrapped_models.append(bootstrapped_model)
+        bootstrapped_models = load_bootstrapped_models(temp_save_dir=temp_save_dir, kan_width=[X_train.shape[1], 1]) # kan width should be made a global or an arg
+        
+    else:
+
+        num_processes = min(mp.cpu_count(), num_bootstrap_samples)
+        
+        print(f'Parallel set to True. Training bootstrapped models in parallel using {num_processes} processes...')
+
+        with ctx.Pool(processes=num_processes) as pool:
+            pool.starmap(train_bootstrapped_kan, train_bootstrapped_kan_args)
+
+        bootstrapped_models = load_bootstrapped_models(temp_save_dir=temp_save_dir, kan_width=[X_train.shape[1], 1]) # kan width should be made a global or an arg
     
     bag_of_kans = BagOfKans(models=bootstrapped_models)
 
@@ -294,9 +396,9 @@ def main(args):
         print('Single model trained.')
 
         print('Training Bag of KANs...')
-        bag_of_kans_result_df_trial = train_bags_of_kans(X_train=X_train, X_test=X_test, y_train=y_train, y_test=y_test, num_itrs=args.num_itrs, lr=args.lr, 
+        bag_of_kans_result_df_trial = train_bag_of_kans(X_train=X_train, X_test=X_test, y_train=y_train, y_test=y_test, num_itrs=args.num_itrs, lr=args.lr, 
                                                          num_bootstrap_samples=args.num_bootstraps, random_seed=args.random_seed + trial_num, trial_num=trial_num,
-                                                         device=device)
+                                                         device=device, parallel=args.parallel)
         print('Bag of KANs trained.')
 
         if result_df is None:
@@ -329,6 +431,7 @@ def parse_args():
     parser.add_argument('--result_dir', type=str, help='Directory in which to save model training results', default=f'single_kan_vs_bag_of_kans_results/results_{neattime()}')
     parser.add_argument('--use_gpu', action='store_true', help='Use GPU for training')
     parser.add_argument('--save_predictions', action='store_true', help='Whether to save predictions for each trial')
+    parser.add_argument('--parallel', action='store_true', help='Whether to use parallel processing for training bootstrapped models')
     args = parser.parse_args()
     return args
 
