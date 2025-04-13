@@ -395,11 +395,17 @@ def main(args):
                                                           random_seed=args.random_seed + trial_num, trial_num=trial_num, device=device)
         print('Single model trained.')
 
+        print("Single model results:")
+        print(single_model_result_df_trial)
+
         print('Training Bag of KANs...')
         bag_of_kans_result_df_trial = train_bag_of_kans(X_train=X_train, X_test=X_test, y_train=y_train, y_test=y_test, num_itrs=args.num_itrs, lr=args.lr, 
                                                          num_bootstrap_samples=args.num_bootstraps, random_seed=args.random_seed + trial_num, trial_num=trial_num,
                                                          device=device, parallel=args.parallel)
         print('Bag of KANs trained.')
+
+        print("Bag of KANs results:")
+        print(bag_of_kans_result_df_trial)
 
         if result_df is None:
             result_df = pl.concat([single_model_result_df_trial, bag_of_kans_result_df_trial])
