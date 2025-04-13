@@ -220,7 +220,8 @@ def train_bootstrapped_kan(temp_save_dir: str, X_train: torch.tensor, X_test: to
         bootstrap_model_idx (int, optional): The index of the current bootstrapped model. Used to deterministically create a new random seed. Defaults to 0.
     """
     
-    torch_random_generator = torch.Generator().manual_seed(random_seed + bootstrap_model_idx)
+    if random_seed:
+        torch_random_generator = torch.Generator().manual_seed(random_seed + bootstrap_model_idx)
     
     if verbose:
             print('.'*100, f'\nTraining bootstrapped model {bootstrap_model_idx+1}/{num_bootstrap_samples}')
@@ -232,13 +233,13 @@ def train_bootstrapped_kan(temp_save_dir: str, X_train: torch.tensor, X_test: to
     X_train_bootstrap = X_train[bootstrap_sample_indices]
     y_train_bootstrap = y_train[bootstrap_sample_indices]
 
-    bootstrapped_model = KAN(width=[X_train.shape[1], 1], seed=random_seed + bootstrap_model_idx
+    bootstrapped_model = KAN(width=[X_train.shape[1], 1], seed=random_seed + bootstrap_model_idx if random_seed else None
                                 , auto_save=False)
     
     bootstrapped_model.to(device)
 
     # not collecting reports for individual bootstrapped models
-    train_regression(model=bootstrapped_model, X_train=X_train_bootstrap, y_train=y_train_bootstrap, X_test=X_test, y_test=y_test, num_itrs=num_itrs, lr=lr, verbose=verbose, seed=random_seed, n_iterations_per_print=50)
+    train_regression(model=bootstrapped_model, X_train=X_train_bootstrap, y_train=y_train_bootstrap, X_test=X_test, y_test=y_test, num_itrs=num_itrs, lr=lr, verbose=verbose, seed=random_seed if random_seed else None, n_iterations_per_print=50)
 
     model_save_path = os.path.join(temp_save_dir, f'bootstrapped_model_trial_{trial_num}_model_{bootstrap_model_idx}.pt')
 
@@ -306,7 +307,7 @@ def train_bag_of_kans(X_train: torch.tensor, X_test: torch.tensor, y_train: torc
     os.makedirs(temp_save_dir, exist_ok=True)
 
     train_bootstrapped_kan_args = [
-        (temp_save_dir, X_train, X_test, y_train, y_test, num_itrs, lr, num_bootstrap_samples, random_seed + (i * num_bootstrap_samples), trial_num, device, verbose, i)
+        (temp_save_dir, X_train, X_test, y_train, y_test, num_itrs, lr, num_bootstrap_samples, random_seed + (i * num_bootstrap_samples) if random_seed else None, trial_num, device, verbose, i)
         for i in range(num_bootstrap_samples)
     ]
 
@@ -386,13 +387,13 @@ def main(args):
         print('-'*100, f'\nTrial {trial_num+1}/{args.n_trials}')
 
         print('Processing data...')
-        X_train, y_train, X_test, y_test = process_data(X=X, y=y, groups=scaffolds, test_size=args.test_size, random_seed=args.random_seed + trial_num, 
+        X_train, y_train, X_test, y_test = process_data(X=X, y=y, groups=scaffolds, test_size=args.test_size, random_seed=args.random_seed + trial_num if args.random_seed else None, 
                                                         variance_threshold=args.variance_threshold, dtype=DTYPE, device=device)
         print('Data processed.')
 
         print('Training single model...')
         single_model_result_df_trial = train_single_model(X_train=X_train, X_test=X_test, y_train=y_train, y_test=y_test, num_itrs=args.num_itrs, lr=args.lr, 
-                                                          random_seed=args.random_seed + trial_num, trial_num=trial_num, device=device)
+                                                          random_seed=args.random_seed + trial_num if args.random_seed else None, trial_num=trial_num, device=device)
         print('Single model trained.')
 
         print("Single model results:")
@@ -400,8 +401,8 @@ def main(args):
 
         print('Training Bag of KANs...')
         bag_of_kans_result_df_trial = train_bag_of_kans(X_train=X_train, X_test=X_test, y_train=y_train, y_test=y_test, num_itrs=args.num_itrs, lr=args.lr, 
-                                                         num_bootstrap_samples=args.num_bootstraps, random_seed=args.random_seed + trial_num, trial_num=trial_num,
-                                                         device=device, parallel=args.parallel)
+                                                         num_bootstrap_samples=args.num_bootstraps, random_seed=args.random_seed + trial_num if args.random_seed else None,
+                                                         trial_num=trial_num, device=device, parallel=args.parallel)
         print('Bag of KANs trained.')
 
         print("Bag of KANs results:")
@@ -429,7 +430,7 @@ def parse_args():
     parser.add_argument('--data_path', type=str, help='Path to the dataset')
     parser.add_argument('--n_trials', type=int, help='Number of trials to run', default=100)
     parser.add_argument('--variance_threshold', type=float, help='Variance threshold for feature selection', default=0.1)
-    parser.add_argument('--random_seed', type=int, help='Random seed for reproducibility', default=1738)
+    parser.add_argument('--random_seed', type=int, help='Random seed for reproducibility', default=None)
     parser.add_argument('--test_size', type=float, help='Test size for the train-test split', default=0.2)
     parser.add_argument('--num_itrs', type=int, help='Number of training iterations for both models', default=500)
     parser.add_argument('--lr', type=float, help='Learning rate for both models', default=0.01)

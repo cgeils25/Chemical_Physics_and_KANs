@@ -9,4 +9,5 @@ python -u full_experiments/run_bag_of_KANs_experiment.py \
     --num_itrs 1000 \
     --lr 0.001 \
     --num_bootstraps 10 \
+    --random_seed 1738 \
     --parallel
