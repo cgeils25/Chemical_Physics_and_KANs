@@ -1,1 +1,2 @@
 from .train_regression import train_regression
+from .train_binary_classification import train_binary_classification
