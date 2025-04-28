@@ -50,6 +50,10 @@ I'll try to test everything not contained in a jupyter notebook so that making f
 
 I expect most of the datasets I used to be public and relatively small, since they'll likely just be lists of SMILES strings and target values. If they're too large for github (> 150 mb), I'll provide instructions for how to obtain them. Otherwise, they'll be contained in `datasets/`
 
+## Poster Presentation
+
+I gave a presentation for this work at Discover USC 2025! I've [added it to this repo](Discover_USC_Poster_Cgeils_CPK.pdf).
+
 # Project Structure
 
 - `datasets/` - All datasets. If a dataset is too large or not public, will include instructions in an appropriately titled .txt
